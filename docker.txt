@@ -1,0 +1,89 @@
+docker run -d -P --name web nginx
+docker port web
+docker-machine ip default
+docker stop web
+docker rm web
+
+cd $HOME
+mkdir mysite
+cd mysite
+echo "a new website" > index.html
+docker run -d -P -v $HOME/mysite:/usr/share/nginx/html \
+	--name mysite nginx
+docker port mysite
+
+
+啟動image
+docker run -t -i -p 80:80 IMAGE_ID /bin/bash
+docker start IMAGE_ID
+
+暫停
+docker pause IMAGE_ID
+取消暫停
+docker unpause IMAGE_ID
+停止
+docker stop IMAGE_ID
+
+刪除image
+docker rmi -f IMAGE_ID
+
+啟動httpd
+/usr/sbin/httpd -f /etc/httpd/conf/httpd.conf &
+
+◎不能有大寫
+docker build -t my-website .
+
+docker rm -f web db
+docker run --name db -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=password mysql
+docker run -itd -p 80:80 --name web --link db:db my-website
+docker exec web /usr/sbin/httpd -f /etc/httpd/conf/httpd.conf &
+
+匯出映像檔
+sudo docker export db > db.tar
+
+匯入映像檔
+docker import db.tar my-db
+cat db.tar | docker import - db
+cat hinaWeb_Export.tar | docker import - local/hinaweb
+sudo docker import http://example.com/exampleimage.tgz example/imagerepo
+
+註冊Docker Hub
+blisschen
+Ikjl925
+
+倉庫註冊器
+sudo docker run -d -p 5000:5000 registry
+
+上傳之前要先標記
+docker tag my-website:v2 blisschen/my-website
+然後再上傳
+docker push blisschen/my-website
+
+清空所有容器
+docker rm -f $(docker ps -a -q)
+docker rmi -f $(docker images -a -q)
+
+TODO 
+mysql 容器儲存狀態
+
+====== udemy ======
+docker search mysql | grep docker.io/mysql
+docker pull mysql
+docker images | grep mysql
+
+#建立鏡射目錄
+mkdir -p /var/local/mysql
+chmod o+rwx /var/local/mysql
+chcon -t svirt_sandbox_file_t /var/local/mysql
+
+docker run -d --name mysql \
+-e MYSQL_ROOT_PASSWORD=password -p 3306:3306 \
+-e MYSQL_USER=user1 -e MYSQL_PASSWORD=user1 \
+-e MYSQL_DATABASE=items \
+-v /var/local/mysql:/var/lib/mysql \
+mysql
+
+CREATE TABLE t (c CHAR(20) CHARACTER SET utf8 COLLATE utf8_bin);
+
+docker exec -it mysql bash
+mysql -h $HOSTNAME -uroot -ppassword items
