@@ -1,17 +1,3 @@
-docker run -d -P --name web nginx
-docker port web
-docker-machine ip default
-docker stop web
-docker rm web
-
-cd $HOME
-mkdir mysite
-cd mysite
-echo "a new website" > index.html
-docker run -d -P -v $HOME/mysite:/usr/share/nginx/html \
-	--name mysite nginx
-docker port mysite
-
 
 啟動image
 docker run -t -i -p 80:80 IMAGE_ID /bin/bash
@@ -30,13 +16,32 @@ docker rmi -f IMAGE_ID
 啟動httpd
 /usr/sbin/httpd -f /etc/httpd/conf/httpd.conf &
 
-◎不能有大寫
-docker build -t my-website .
 
-docker rm -f web db
-docker run --name db -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=password mysql
-docker run -itd -p 80:80 --name web --link db:db my-website
+====== web server 啟動指令 ======
+◎不能有大寫
+docker build -t blisschen/web .
+
+docker rm -f web mysql
+
+docker run --name mysql \
+-v /etc/localtime:/etc/localtime:ro \
+-p 3306:3306 \
+-e MYSQL_ROOT_PASSWORD=password \
+-e MYSQL_DATABASE=items \
+-d mysql
+
+docker run --name web \
+-itd -p 80:80 \
+--link mysql:mysql \
+blisschen/web
+
 docker exec web /usr/sbin/httpd -f /etc/httpd/conf/httpd.conf &
+====== web server 啟動指令 End ======
+
+cd var/log/httpd/
+
+
+
 
 匯出映像檔
 sudo docker export db > db.tar
@@ -87,3 +92,23 @@ CREATE TABLE t (c CHAR(20) CHARACTER SET utf8 COLLATE utf8_bin);
 
 docker exec -it mysql bash
 mysql -h $HOSTNAME -uroot -ppassword items
+
+====== nginx ======
+docker run --restart=always --name mysql -v /etc/localtime:/etc/localtime:ro -p 3306:3306 -v /works/db:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=rootroot -e MYSQL_DATABASE=test_project -e MYSQL_USER=project -e MYSQL_PASSWORD=12345678 -d mysql/mysql-server:5.5
+docker run --restart=always --name php-fpm_5.2 -v /etc/localtime:/etc/localtime:ro -v /works/www:/works/www --link mysql:db -d helder/php-5.2
+docker run --restart=always --name nginx -v /etc/localtime:/etc/localtime:ro -p 80:80 -e NGINX_SITE_ROOT=/works/www -v /works/www:/works/www -v /works/nginx/log:/var/log/nginx/ --link php-fpm_5.2:phpfpm -d nginx
+
+// test
+
+
+docker run --name php-fpm_5.2 \
+-v /etc/localtime:/etc/localtime:ro \
+--link mysql:db \
+-d helder/php-5.2
+
+docker run --name nginx \
+-v /etc/localtime:/etc/localtime:ro \
+-p 80:80 \
+-e NGINX_SITE_ROOT=/works/www \
+--link php-fpm_5.2:phpfpm \
+-d nginx
