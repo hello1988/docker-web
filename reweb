@@ -1,0 +1,19 @@
+printf "rebuild web start\n"
+
+docker stop web
+printf "stop web complete\n"
+
+docker rm -f web
+printf "rm web complete\n"
+
+docker build -t blisschen/web .
+printf "build web complete\n"
+
+docker run --name web \
+-itd -p 80:80 \
+--link mysql:mysql \
+blisschen/web
+printf "run web complete\n"
+
+docker exec web /usr/sbin/httpd -f /etc/httpd/conf/httpd.conf &
+printf "run web service complete\n"
