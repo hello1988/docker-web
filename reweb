@@ -17,3 +17,5 @@ printf "run web complete\n"
 
 docker exec web /usr/sbin/httpd -f /etc/httpd/conf/httpd.conf &
 printf "run web service complete\n"
+
+docker exec -it web bash

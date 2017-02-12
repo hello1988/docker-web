@@ -1,12 +1,13 @@
 ﻿<?php
-include dirname(__FILE__)."/postHandle.php";
+include_once dirname(__FILE__)."/postHandle.php";
+include_once dirname(__FILE__)."/requestMgr.php";
+include_once dirname(__FILE__)."/logMgr.php";
 
 class cmd extends postHandle
 {
 	public static function handle()
 	{
-		echo "cmd public method ";
-		echo $_POST["data"];
+		logMgr::writeLog( "[cmd][handle]" );
 	}
 }
 
