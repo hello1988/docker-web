@@ -52,6 +52,7 @@ cat db.tar | docker import - db
 cat hinaWeb_Export.tar | docker import - local/hinaweb
 sudo docker import http://example.com/exampleimage.tgz example/imagerepo
 
+docker login
 註冊Docker Hub
 blisschen
 Ikjl925
@@ -60,9 +61,9 @@ Ikjl925
 sudo docker run -d -p 5000:5000 registry
 
 上傳之前要先標記
-docker tag my-website:v2 blisschen/my-website
+docker tag web blisschen/web
 然後再上傳
-docker push blisschen/my-website
+docker push blisschen/web
 
 清空所有容器
 docker rm -f $(docker ps -a -q)
@@ -93,22 +94,4 @@ CREATE TABLE t (c CHAR(20) CHARACTER SET utf8 COLLATE utf8_bin);
 docker exec -it mysql bash
 mysql -h $HOSTNAME -uroot -ppassword items
 
-====== nginx ======
-docker run --restart=always --name mysql -v /etc/localtime:/etc/localtime:ro -p 3306:3306 -v /works/db:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=rootroot -e MYSQL_DATABASE=test_project -e MYSQL_USER=project -e MYSQL_PASSWORD=12345678 -d mysql/mysql-server:5.5
-docker run --restart=always --name php-fpm_5.2 -v /etc/localtime:/etc/localtime:ro -v /works/www:/works/www --link mysql:db -d helder/php-5.2
-docker run --restart=always --name nginx -v /etc/localtime:/etc/localtime:ro -p 80:80 -e NGINX_SITE_ROOT=/works/www -v /works/www:/works/www -v /works/nginx/log:/var/log/nginx/ --link php-fpm_5.2:phpfpm -d nginx
 
-// test
-
-
-docker run --name php-fpm_5.2 \
--v /etc/localtime:/etc/localtime:ro \
---link mysql:db \
--d helder/php-5.2
-
-docker run --name nginx \
--v /etc/localtime:/etc/localtime:ro \
--p 80:80 \
--e NGINX_SITE_ROOT=/works/www \
---link php-fpm_5.2:phpfpm \
--d nginx
