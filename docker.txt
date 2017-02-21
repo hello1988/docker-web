@@ -25,6 +25,7 @@ docker rm -f web mysql
 
 docker run --name mysql \
 -v /etc/localtime:/etc/localtime:ro \
+-v /var/local/mysql:/var/lib/mysql \
 -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=password \
 -e MYSQL_DATABASE=items \
@@ -39,7 +40,8 @@ docker exec web /usr/sbin/httpd -f /etc/httpd/conf/httpd.conf &
 ====== web server 啟動指令 End ======
 
 cd var/log/httpd/
-
+docker logs mysql
+防火牆開放 tcp:3306
 
 
 
