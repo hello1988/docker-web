@@ -48,10 +48,10 @@ class requestMgr
 			return ;
 		}
 
+		// 只載入我要的class 並呼叫handle
 		$className = $this->cmdMap[$cmdID];
 		$fileName = "/".$className.".php";
 		include_once dirname(__FILE__).$fileName;
-		// call_user_func($this->cmdMap[$cmdID]);
 		
 		$refClass = new ReflectionClass($className);
 		$refObj = $refClass->newInstance();
