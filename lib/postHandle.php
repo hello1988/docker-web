@@ -4,14 +4,30 @@ include_once dirname(__FILE__)."/logMgr.php";
 class postHandle
 {
 	private $dbConn = null;
-	public static function handle()
+	private $argMap = null;
+	public function handle()
 	{
 		logMgr::writeLog( "please override handle method" );
 	}
-	
-	public function __construct() 
+
+	public function __construct()
 	{
-		closeConn();
+		$this->argMap = array();
+		if ( array_key_exists( "arg", $_POST ) ) 
+		{
+			$tmpMap = json_decode($_POST["arg"], true);
+			if( $tmpMap != null ) 
+			{
+				$this->argMap = $tmpMap;
+			} 
+		}
+		logMgr::writeLog( json_encode($this->argMap) );
+		
+	}
+	
+	public function __destruct() 
+	{
+		$this->closeConn();
 	}
 	
 	public function checkConn() 
@@ -50,6 +66,16 @@ class postHandle
 			return ;
 		}
 		mysqli_close($this->dbConn);
+	}
+	
+	protected function getPostArg( $argName )
+	{
+		if ( !array_key_exists( $argName, $this->argMap ) )
+		{
+			return null;
+		}
+		
+		return $this->argMap[$argName];
 	}
 }
 

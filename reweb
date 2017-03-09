@@ -6,6 +6,9 @@ printf "stop web complete\n"
 docker rm -f web
 printf "rm web complete\n"
 
+docker rmi -f blisschen/web
+printf "rm web image complete\n"
+
 docker build -t blisschen/web .
 printf "build web complete\n"
 

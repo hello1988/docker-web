@@ -1,6 +1,6 @@
 ﻿<?php
 include_once dirname(__FILE__)."/logMgr.php";
-include_once dirname(__FILE__)."/cmd.php";
+// include_once dirname(__FILE__)."/cmd.php";
 
 class requestMgr
 {
@@ -11,7 +11,9 @@ class requestMgr
 	{
 		$this->cmdMap = array
 		(
-			"1" => array("cmd", "handle"),
+			"1" => "cmd",
+			
+			"1000" => "cmdLogin",
 		);
 	}
 	
@@ -46,7 +48,14 @@ class requestMgr
 			return ;
 		}
 
-		call_user_func($this->cmdMap[$cmdID]);
+		$className = $this->cmdMap[$cmdID];
+		$fileName = "/".$className.".php";
+		include_once dirname(__FILE__).$fileName;
+		// call_user_func($this->cmdMap[$cmdID]);
+		
+		$refClass = new ReflectionClass($className);
+		$refObj = $refClass->newInstance();
+		$refObj->handle();
 	}
 }
 ?>
