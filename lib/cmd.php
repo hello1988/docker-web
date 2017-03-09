@@ -8,6 +8,7 @@ class cmd extends postHandle
 	public static function handle()
 	{
 		logMgr::writeLog( "[cmd][handle]" );
+		echo "{'msg':'Hello World!'}";
 	}
 }
 
