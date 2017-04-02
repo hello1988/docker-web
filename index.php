@@ -7,7 +7,6 @@ if( $_SERVER["REQUEST_METHOD"] != "POST" )
 }
 
 binInput();
-// jsonInput();
 
 function binInput()
 {
@@ -29,11 +28,4 @@ function binInput()
 	
 }
 
-function jsonInput()
-{
-	include_once dirname(__FILE__)."/../lib/requestMgr.php";
-
-	header("Content-Type: application/json;charset=utf-8");
-	requestMgr::getInstance()->handle($_POST["cmdID"]);
-}
 ?>
