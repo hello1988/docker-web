@@ -54,12 +54,15 @@ class postHandle
 		}
 		
 		// use database
-		// $this->dbConn->query("use items;");
+		$this->dbConn->query("use AirCleaner;");
 	}
 	
 	public function queryDB( $sqlStr )
 	{
 		$this->checkConn();
+		// echo "queryDB : ".$sqlStr."\n";
+		// echo "dbConn : ".$this->dbConn->connect_errno."\n";
+		// var_dump($this->dbConn);
 		return $this->dbConn->query($sqlStr);
 	}
 	

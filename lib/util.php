@@ -10,6 +10,22 @@ class util
 		return substr( str_shuffle(util::$seed), 0, $size );
 	}
 	
+	public static function createUserID()
+	{
+		// 規則未定
+		
+		$header = "ACR";	// 3
+		$t = time();		// 11
+		$tail = util::getOTP( 7 );// 7
+
+		// time 前面補0到11位
+		$t = "00000000000".$t;
+		$t = substr($t, strlen($t)-11, 11);
+
+		$UserID = Util::string_format("{0}{1}{2}", $header, $t, $tail);
+		return $UserID;
+	}
+	
 	public static function setJsonToObject( $obj, $jsonStr )
 	{
 		$data = json_decode($jsonStr, true);
@@ -17,6 +33,26 @@ class util
 		{
 			$obj->{$key} = $value;
 		}
+	}
+	
+	// ex : string_format("aa{2}bb{0}cc{1}",11,22,33); => aa33bb11cc22
+	function string_format()
+	{
+		$args = func_get_args();
+		$argNum = count($args);
+		if ($argNum == 0) { return '';}     
+		if ($argNum == 1) { return $args[0]; }
+	
+		return preg_replace_callback
+			(
+				"/\{(\\d)\}/",
+				function($m) use($args, $argNum) 
+				{
+					$index = $m[1]+1;
+					return (($index > 0) && ($index < $argNum)) ? $args[$index]:"";
+				},
+				$args[0]
+			);
 	}
 }
 

@@ -2,6 +2,7 @@
 include_once dirname(__FILE__)."/postHandle.php";
 include_once dirname(__FILE__)."/../lib/logMgr.php";
 include_once dirname(__FILE__)."/../lib/util.php";
+include_once dirname(__FILE__)."/../lib/sqlUser.php";
 
 class cmdLogin extends postHandle
 {
@@ -12,35 +13,32 @@ class cmdLogin extends postHandle
 		$resp = $this->getResp();
 		
 		// echo $req->UserName." : ".$req->Password."\n";
-		/*
-		$sql = "select User_ID, password, otp, login_time from User where User_ID='".$req->UserName."'";
-		echo $sql;
-		$result = $this->queryDB( $sql );
-		$otp = "";
-		// test 找不到帳號 先創建一個
-		if(!$result)
-		{
-			$otp = createUser($userName,$pwd);
-		}
-		// test end
-		else
-		{
-			var_dump($result);	
-		}
-		*/
-		$otp = util::getOTP(30);
 		
-		$resp->UserID = $req->UserName;
-		$resp->Token = $otp;
+		// $sql = "select * from User where User_ID = 'aaa';";
+		// $result = $this->queryDB( $sql );
+		// $result->free();
+		$user = $this->createUser($req->UserName,$req->Password);
+		if( $user != null)
+		{
+			$resp->UserID = $req->UserName;
+			$resp->Token = $user->otp;	
+		}
 		$this->writeResp();
 	}
 	
-	private function createUser($userName,$pwd)
+	private function createUser($userName, $password)
 	{
-		$otp = util::getOTP(30);
-		$insertSql = "insert into User (User_ID, user_name, phone, password, update_by, otp ) values('".$userName."','','0912345678','".$pwd."','admin','".$otp."');";
+		$newUser = User::createUser( "email", $userName, "phone", $password, $userName );
+		$insertSql = $newUser->getInsertSql();
 		
-		return $otp;
+		if( !$this->queryDB( $insertSql ) )
+		{
+			$resp = $this->getResp();
+			// $resp->setErrorCode(error::);
+			return null;
+		}
+
+		return $newUser;
 	}
 	
 	public function __construct()
