@@ -62,5 +62,8 @@ class error
 	
 	public static $ARG_NOT_FOUND = 1;	// post 參數沒有arg
 	public static $ARG_NOT_JSON  = 2;	// arg 不是正確的json格式
+	
+	public static $USER_NOT_FOUND= 100;	// 帳號 - 找不到使用者
+	
 }
 ?>

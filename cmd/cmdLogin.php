@@ -2,7 +2,7 @@
 include_once dirname(__FILE__)."/postHandle.php";
 include_once dirname(__FILE__)."/../lib/logMgr.php";
 include_once dirname(__FILE__)."/../lib/util.php";
-include_once dirname(__FILE__)."/../lib/sqlUser.php";
+include_once dirname(__FILE__)."/../sqlData/User.php";
 
 class cmdLogin extends postHandle
 {
@@ -12,17 +12,49 @@ class cmdLogin extends postHandle
 		$req = $this->getReq();
 		$resp = $this->getResp();
 		
-		// echo $req->UserName." : ".$req->Password."\n";
+		$user = null;
+		$sql = User::getSelectSql($req->UserName);
+		$result = $this->queryDB( $sql );
 		
-		// $sql = "select * from User where User_ID = 'aaa';";
-		// $result = $this->queryDB( $sql );
-		// $result->free();
-		$user = $this->createUser($req->UserName,$req->Password);
-		if( $user != null)
+		// 找到就檢查密碼
+		if($result->num_rows > 0)
 		{
-			$resp->UserID = $req->UserName;
-			$resp->Token = $user->otp;	
+			$user = User::rebuildUser( $result->fetch_assoc() );
 		}
+		
+		// TEST 找不到暫時先生一個
+		else
+		{
+			$user = $this->createUser($req->UserName,$req->Password);
+		}
+		$result->free();
+		
+		// 檢查帳號存在
+		if( $user == null)
+		{
+			$this->setErrorCode(error::$USER_NOT_FOUND);
+			$this->writeResp();
+			return ;
+		}
+
+		// 檢查密碼正確
+		if( !$user->checkPassword( $req->Password ) )
+		{
+			$this->setErrorCode(error::$USER_NOT_FOUND);
+			$this->writeResp();
+			return ;
+		}
+		
+		$user->setProperty( "login_time", time() );
+		$user->setProperty( "update_by", $user->user_name );
+		$updateSql = $user->getUpdateSql();
+		if( $updateSql )
+		{
+			$this->queryDB($updateSql);
+		}
+		
+		$resp->UserID = $user->getUserID();
+		$resp->Token = $user->otp;
 		$this->writeResp();
 	}
 	
@@ -34,7 +66,7 @@ class cmdLogin extends postHandle
 		if( !$this->queryDB( $insertSql ) )
 		{
 			$resp = $this->getResp();
-			// $resp->setErrorCode(error::);
+			// $this->setErrorCode(error::);
 			return null;
 		}
 
