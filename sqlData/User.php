@@ -14,7 +14,7 @@ class User extends sqlDataBase
 	public $password = "";		// text
 	public $user_type = 0;		// tinyint(4)
 	public $update_by = "";		// varchar(50)
-	public $otp = "";			// varchar(50)
+	public $guest_key = "";		// varchar(50)
 	public $login_time = 0;		// bigint(20)
 
 	public static function createUser( $email, $userName, $phone, $password, $createBy )
@@ -27,7 +27,7 @@ class User extends sqlDataBase
 		$newUser->phone = $phone;
 		$newUser->password = $password;
 		$newUser->update_by = $createBy;
-		$newUser->otp = util::getOTP( 30 );
+		$newUser->guest_key = util::getGuestKey();
 		$newUser->login_time = time();
 		
 		return $newUser;
@@ -49,7 +49,7 @@ class User extends sqlDataBase
 		$user->password = $dbRowData["password"];
 		$user->user_type = intval( $dbRowData["user_type"] );
 		$user->update_by = $dbRowData["update_by"];
-		$user->otp = $dbRowData["otp"];
+		$user->guest_key = $dbRowData["guest_key"];
 		$user->login_time = intval( $dbRowData["login_time"] );
 
 		return $user;
@@ -76,8 +76,8 @@ class User extends sqlDataBase
 	
 	public function getInsertSql()
 	{
-		$insertSql = "insert into User (User_ID, user_name, phone, password, update_by, otp, login_time ) values('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', {6} );";
-		$insertSql = util::string_format($insertSql, $this->User_ID, $this->user_name, $this->phone, $this->password, $this->update_by, $this->otp, $this->login_time);
+		$insertSql = "insert into User (User_ID, user_name, phone, password, update_by, guest_key, login_time ) values('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', {6} );";
+		$insertSql = util::string_format($insertSql, $this->User_ID, $this->user_name, $this->phone, $this->password, $this->update_by, $this->guest_key, $this->login_time);
 		// echo "getInsertSql : ".$insertSql."\n";
 		return $insertSql;
 	}

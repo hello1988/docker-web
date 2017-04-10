@@ -9,3 +9,5 @@ COPY index.php /var/www/html/
 COPY lib/* /var/www/html/lib/
 COPY cmd/* /var/www/html/cmd/
 COPY sqlData/* /var/www/html/sqlData/
+
+RUN chmod 777 -R /var/log/httpd/

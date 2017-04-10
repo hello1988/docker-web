@@ -138,10 +138,10 @@ CREATE TABLE `User` (
   `user_type` tinyint(4) NOT NULL DEFAULT '0',
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `update_by` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-  `otp` varchar(50) COLLATE utf8_unicode_ci NOT NULL COMMENT '識別字串',
+  `guest_key` varchar(50) COLLATE utf8_unicode_ci NOT NULL COMMENT '識別字串',
   `login_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '入時間登',
   PRIMARY KEY (`User_ID`),
-  UNIQUE KEY `otp` (`otp`),
+  UNIQUE KEY `guest_key` (`guest_key`),
   UNIQUE KEY `userName` (`user_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 

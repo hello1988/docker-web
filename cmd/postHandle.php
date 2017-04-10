@@ -9,6 +9,8 @@ class postHandle
 	
 	private $dbConn = null;
 	
+	public static $BASE_KEY = "4099efc3825d55e58b97f6f84fddac00";
+	
 	public function handle()
 	{
 		logMgr::writeLog( "please override handle method" );
@@ -20,13 +22,14 @@ class postHandle
 		$this->resp = $respObj;
 		logMgr::writeLog( json_encode($_POST) );
 		
-		if ( !array_key_exists( "arg", $_POST ) ) 
+		if ( !array_key_exists( "data", $_POST ) ) 
 		{
 			setErrorCode(error::$ARG_NOT_FOUND);
 			return ;
 		}
 		
-		$this->req->setDataByJson( $_POST["arg"] );
+		$decodeData = $this->req->decodeData( $_POST["data"] );
+		$this->req->setDataByJson( $decodeData );
 	}
 	
 	public function __destruct() 
@@ -98,6 +101,20 @@ class postHandle
 
 class reqBase
 {
+	// client 加密 先guest在base
+	// 先用base解開 再用guest解
+	public function decodeData( $base64Data )
+	{
+		// 前44碼為時戳+key的加密
+		$seed_key = substr($base64Data, 0, 44);
+		$encodeData = substr($base64Data, 44);
+		
+		$seed = util::doDecoder(postHandle::$BASE_KEY, $seed_key);
+		$decodeData = util::doDecoder($seed, $encodeData);
+		
+		return $decodeData;
+	}
+	
 	public function setDataByJson($jsonStr)
 	{
 		$data = json_decode($jsonStr, true);
@@ -129,7 +146,14 @@ class respBase
 	public function writeResp()
 	{
 		// get_object_vars 為了把private的成員也印出來
-		echo json_encode(get_object_vars($this));
+		$value_org_json = json_encode(get_object_vars($this));
+		$seed = util::getGuestKey();
+		$seed_key = util::doEncoder(postHandle::$BASE_KEY, $seed);
+		$respStr = $seed_key.util::doEncoder($seed, $value_org_json);
+		
+		$result = array();
+		$result["data"] = $respStr;
+		echo json_encode($result);
 	}
 }
 ?>
