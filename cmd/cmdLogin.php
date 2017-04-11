@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include_once dirname(__FILE__)."/postHandle.php";
 include_once dirname(__FILE__)."/../lib/logMgr.php";
 include_once dirname(__FILE__)."/../lib/util.php";
@@ -86,19 +86,6 @@ class reqLogin extends reqBase
     public $UserName = "";
     public $Password = "";
 	
-	// login 只用baseKey加密
-	public function decodeData( $base64Data )
-	{
-		// 前44碼為時戳+key的加密
-		$seed_key = substr($base64Data, 0, 44);
-		$encodeData = substr($base64Data, 44);
-		
-		$seed = util::doDecoder(postHandle::$BASE_KEY, $seed_key);
-		$decodeData = util::doDecoder($seed, $encodeData);
-		
-		logMgr::writeLog( "decodeData : ".$decodeData );
-		return $decodeData;
-	}
 }
 
 class respLogin extends respBase
@@ -106,19 +93,6 @@ class respLogin extends respBase
     public $UserID = "";
     public $GuestKey = "";
 	
-	// login 只用baseKey加密
-	public function writeResp()
-	{
-		// get_object_vars 為了把private的成員也印出來
-		$value_org_json = json_encode(get_object_vars($this));
-		$seed = util::getGuestKey();
-		$seed_key = util::doEncoder(postHandle::$BASE_KEY, $seed);
-		$respStr = $seed_key.util::doEncoder($seed, $value_org_json);
-		
-		$result = array();
-		$result["data"] = $respStr;
-		echo json_encode($result);
-	}
 }
 
 

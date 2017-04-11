@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include_once dirname(__FILE__)."/../lib/logMgr.php";
 include_once dirname(__FILE__)."/../lib/util.php";
 
@@ -106,13 +106,14 @@ class reqBase
 	public function decodeData( $base64Data )
 	{
 		// 前44碼為時戳+key的加密
-		$seed_key = substr($base64Data, 0, 44);
-		$encodeData = substr($base64Data, 44);
+		$guestKey = postHandle::$BASE_KEY;
+		$jsonStr = $this->keyDecode( postHandle::$BASE_KEY, $base64Data );
+		$data = json_decode($jsonStr,true)["data"];
+		// logMgr::writeLog( "jsonStr : ".$jsonStr );
+		// logMgr::writeLog( "data : ".$data );
 		
-		$seed = util::doDecoder(postHandle::$BASE_KEY, $seed_key);
-		$decodeData = util::doDecoder($seed, $encodeData);
-		
-		return $decodeData;
+		$jsonStr = $this->keyDecode( $guestKey, $data );
+		return $jsonStr;
 	}
 	
 	public function setDataByJson($jsonStr)
@@ -130,6 +131,17 @@ class reqBase
 		return true;
 	}
 	
+	protected function keyDecode( $key, $value )
+	{
+		// 前44碼為時戳+key的加密
+		$seed_key = substr($value, 0, 44);
+		$encodeData = substr($value, 44);
+		
+		$seed = util::doDecoder($key, $seed_key);
+		$data = util::doDecoder($seed, $encodeData);
+		
+		return $data;
+	}
 }
 
 class respBase
@@ -145,15 +157,24 @@ class respBase
 	
 	public function writeResp()
 	{
-		// get_object_vars 為了把private的成員也印出來
-		$value_org_json = json_encode(get_object_vars($this));
-		$seed = util::getGuestKey();
-		$seed_key = util::doEncoder(postHandle::$BASE_KEY, $seed);
-		$respStr = $seed_key.util::doEncoder($seed, $value_org_json);
 		
+		$guestKey = postHandle::$BASE_KEY;
+		$respStr = $this->keyEncode( $guestKey, json_encode(get_object_vars($this)) );
 		$result = array();
 		$result["data"] = $respStr;
-		echo json_encode($result);
+		
+		$respStr2 = $this->keyEncode( postHandle::$BASE_KEY, json_encode($result) );
+		
+		echo $respStr2 ;
+	}
+	
+	protected function keyEncode( $key, $value )
+	{
+		// get_object_vars 為了把private的成員也印出來
+		$seed = md5( util::getGuestKey() );
+		$seed_key = util::doEncoder(postHandle::$BASE_KEY, $seed);
+		$base64Str = $seed_key.util::doEncoder($seed, $value);
+		return $base64Str;
 	}
 }
 ?>

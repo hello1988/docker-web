@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 class util
 {
@@ -63,6 +63,7 @@ class util
 	
 	public static function doEncoder($key, $value)
 	{
+		logMgr::writeLog( "doEncoder( ".$key.", ".$value.")" );
 		$resultStr = "";
 
 		$key_len = strlen($key);
@@ -73,12 +74,13 @@ class util
 			$resultStr .= chr(ord($value[$i]) ^ ord($key[$i%$key_len]));
 		}
 
+		logMgr::writeLog( "doEncoder resultStr : ".base64_encode($resultStr) );
 		return base64_encode($resultStr);
 	}
 	
 	public static function doDecoder($key, $value)
 	{
-		logMgr::writeLog( "doDecoder( ".$key.", ".$value.")" );
+		// logMgr::writeLog( "doDecoder( ".$key.", ".$value.")" );
 		$resultStr = "";
 		
 		$decodeValue = base64_decode($value);
@@ -90,7 +92,7 @@ class util
 			$resultStr .= chr(ord($decodeValue[$i]) ^ ord($key[$i%$key_len]));
 		}
 
-		logMgr::writeLog( "doDecoder resultStr : ".$resultStr );
+		// logMgr::writeLog( "doDecoder resultStr : ".$resultStr );
 		return $resultStr;
 	}
 }
