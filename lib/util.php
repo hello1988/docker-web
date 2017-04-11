@@ -11,9 +11,9 @@ class util
 	}
 	
 	private static $guestKeySeed = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-	public static function getGuestKey()
+	public static function getGuestKey( $len = 32)
 	{
-		return substr( str_shuffle(util::$guestKeySeed), 0, 32 );
+		return substr( str_shuffle(util::$guestKeySeed), 0, $len );
 	}
 	
 	public static function createUserID()

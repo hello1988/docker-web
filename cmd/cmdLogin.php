@@ -73,11 +73,17 @@ class cmdLogin extends postHandle
 		return $newUser;
 	}
 	
-	public function __construct()
+	public function cmdLoginInit()
 	{
 		$reqObj = new reqLogin();
 		$respObj = new respLogin();
-		parent::__construct( $reqObj, $respObj );
+		if( !parent::init( $reqObj, $respObj, postHandle::$BASE_KEY ) )
+		{
+			$this->writeResp();
+			return false;
+		}
+		
+		return true;
 	}
 }
 
@@ -103,5 +109,8 @@ if( $_SERVER["REQUEST_METHOD"] != "POST" )
 }
 
 $login = new cmdLogin();
-$login->handle();
+if( $login->cmdLoginInit() )
+{
+	$login->handle();	
+}
 ?>

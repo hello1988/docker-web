@@ -16,7 +16,7 @@ class postHandle
 		logMgr::writeLog( "please override handle method" );
 	}
 
-	public function __construct( $reqObj, $respObj )
+	public function init( $reqObj, $respObj, $guestKey = "" )
 	{
 		$this->req = $reqObj;
 		$this->resp = $respObj;
@@ -24,12 +24,38 @@ class postHandle
 		
 		if ( !array_key_exists( "data", $_POST ) ) 
 		{
-			setErrorCode(error::$ARG_NOT_FOUND);
-			return ;
+			$this->setErrorCode(error::$ARG_NOT_FOUND);
+			return false;
 		}
 		
+		if( $guestKey == "" )
+		{
+			if ( !array_key_exists( "UserID", $_POST ) ) 
+			{
+				$this->setErrorCode(error::$ARG_NOT_FOUND);
+				return false;
+			}
+			$userID = $_POST["UserID"];
+			$guestKey = queryGuestKeyByUserID( $userID );
+			
+			if( $guestKey == "" )
+			{
+				$this->setErrorCode(error::$ARG_NOT_FOUND);
+				return false;
+			}
+		}
+		
+		$this->req->setGuestKey( $guestKey );
+		$this->resp->setGuestKey( $guestKey );
+		
 		$decodeData = $this->req->decodeData( $_POST["data"] );
+		if($decodeData == "")
+		{
+			$this->setErrorCode(error::$ARG_NOT_FOUND);
+			return false;
+		}
 		$this->req->setDataByJson( $decodeData );
+		return true;
 	}
 	
 	public function __destruct() 
@@ -97,22 +123,42 @@ class postHandle
 	{
 		return $this->resp;
 	}
+	
+		
+	public function queryGuestKeyByUserID( $userID )
+	{
+		$sql = util::string_format("select guest_key from User where User_ID = '{0}' limit 1;",$userID);
+		$result->queryDB( $sqlStr );
+		
+		if($result->num_rows<= 0)
+		{
+			return "";
+		}
+		
+		$dbRowData = $result->fetch_assoc();
+		// var_dump( $dbRowData );
+		return $dbRowData["guest_key"];
+	}
 }
 
 class reqBase
-{
+{	
+	private $guestKey = "";
+	public function setGuestKey( $gKey )
+	{
+		$this->guestKey = $gKey;
+	}
 	// client 加密 先guest在base
 	// 先用base解開 再用guest解
 	public function decodeData( $base64Data )
 	{
 		// 前44碼為時戳+key的加密
-		$guestKey = postHandle::$BASE_KEY;
 		$jsonStr = $this->keyDecode( postHandle::$BASE_KEY, $base64Data );
 		$data = json_decode($jsonStr,true)["data"];
 		// logMgr::writeLog( "jsonStr : ".$jsonStr );
 		// logMgr::writeLog( "data : ".$data );
 		
-		$jsonStr = $this->keyDecode( $guestKey, $data );
+		$jsonStr = $this->keyDecode( $this->guestKey, $data );
 		return $jsonStr;
 	}
 	
@@ -146,20 +192,25 @@ class reqBase
 
 class respBase
 {
-	private $errorCode = 0;
+	private $ErrorCode = 0;
+	private $guestKey = "";
 	
 	public function __construct()
 	{
-		$this->errorCode = error::$NONE;
+		$this->ErrorCode = error::$NONE;
 	}
-	public function setErrorCode($code){$this->errorCode = $code;}
-	public function getErrorCode(){return $this->errorCode;}
+	public function setErrorCode($code){$this->ErrorCode = $code;}
+	public function getErrorCode(){return $this->ErrorCode;}
 	
+	public function setGuestKey( $gKey )
+	{
+		$this->guestKey = $gKey;
+	}
+
 	public function writeResp()
 	{
-		
-		$guestKey = postHandle::$BASE_KEY;
-		$respStr = $this->keyEncode( $guestKey, json_encode(get_object_vars($this)) );
+		// get_object_vars 為了把private的成員也印出來
+		$respStr = $this->keyEncode( $this->guestKey, json_encode(get_object_vars($this)) );
 		$result = array();
 		$result["data"] = $respStr;
 		
@@ -170,8 +221,7 @@ class respBase
 	
 	protected function keyEncode( $key, $value )
 	{
-		// get_object_vars 為了把private的成員也印出來
-		$seed = md5( util::getGuestKey() );
+		$seed = md5( util::getGuestKey(32) );
 		$seed_key = util::doEncoder(postHandle::$BASE_KEY, $seed);
 		$base64Str = $seed_key.util::doEncoder($seed, $value);
 		return $base64Str;
